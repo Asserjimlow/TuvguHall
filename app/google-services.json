@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "181901913261",
+    "project_id": "auditorium-schedule",
+    "storage_bucket": "auditorium-schedule.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:181901913261:android:3c142739e929b043932a24",
+        "android_client_info": {
+          "package_name": "com.example.tuvguhall"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC_Y7L32TrsIp5yLz3iDqo4ZVNmHRJgtHw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

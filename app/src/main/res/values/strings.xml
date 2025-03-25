@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">TuvguHall</string>
+    <string-array name="room_options">
+        <item>125</item>
+        <item>hall</item>
+    </string-array>
+</resources>

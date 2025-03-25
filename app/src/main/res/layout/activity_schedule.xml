@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ScheduleActivity">
+
+    <!-- res/layout/activity_schedule.xml -->
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="vertical"
+        android:padding="16dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <!-- Выбор аудитории -->
+        <!-- Вставь перед spinnerRoom -->
+        <TextView
+            android:id="@+id/textUserInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Загрузка пользователя..."
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:layout_marginBottom="8dp"/>
+
+        <Button
+            android:id="@+id/buttonLogout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Выйти"
+            android:layout_marginBottom="8dp"/>
+        <Spinner
+            android:id="@+id/spinnerRoom"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:entries="@array/room_options"/>
+
+        <!-- Выбор даты -->
+        <Button
+            android:id="@+id/buttonPickDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Выбрать дату"
+            android:layout_marginTop="8dp"/>
+
+        <!-- Заголовок с датой -->
+        <TextView
+            android:id="@+id/textSelectedDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Дата не выбрана"
+            android:layout_marginTop="8dp"/>
+
+        <!-- Список временных слотов -->
+        <ListView
+            android:id="@+id/listViewSlots"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:layout_marginTop="16dp"/>
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
