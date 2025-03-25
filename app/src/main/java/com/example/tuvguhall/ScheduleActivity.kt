@@ -1,8 +1,10 @@
 package com.example.tuvguhall
 
+import com.google.firebase.messaging.FirebaseMessaging
 import android.content.Intent
 import android.app.DatePickerDialog
 import android.os.Bundle
+import android.util.Log
 import android.widget.*
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -43,6 +45,19 @@ class ScheduleActivity : AppCompatActivity() {
 
         dbRef = FirebaseDatabase.getInstance().getReference("Schedule")
 
+        val buttonJournal = findViewById<Button>(R.id.buttonJournal)
+
+        buttonJournal.setOnClickListener {
+            val intent = Intent(this, JournalActivity::class.java)
+            startActivity(intent)
+        }
+        FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+            if (task.isSuccessful) {
+                val token = task.result
+                Log.d("FCM", "FCM Token: $token")
+                Toast.makeText(this, "Токен получен в логах", Toast.LENGTH_SHORT).show()
+            }
+        }
         // загрузка данных пользователя
         val user = FirebaseAuth.getInstance().currentUser
         if (user != null) {
@@ -89,8 +104,15 @@ class ScheduleActivity : AppCompatActivity() {
         }
 
         listViewSlots.setOnItemClickListener { _, _, position, _ ->
-            val slot = timeSlots[position]
+            val slotText = listViewSlots.getItemAtPosition(position).toString()
+
+            if (slotText.contains("ПРОШЛО")) {
+                Toast.makeText(this, "Этот слот уже в прошлом", Toast.LENGTH_SHORT).show()
+                return@setOnItemClickListener
+            }
+
             if (selectedDate.isNotEmpty()) {
+                val slot = slotText.substringBefore(" -") // извлекаем только время
                 bookSlotIfAvailable(slot)
             }
         }
@@ -98,6 +120,7 @@ class ScheduleActivity : AppCompatActivity() {
 
     private fun showDatePicker() {
         val calendar = Calendar.getInstance()
+
         val datePicker = DatePickerDialog(this,
             { _, year, month, day ->
                 val picked = Calendar.getInstance()
@@ -111,6 +134,7 @@ class ScheduleActivity : AppCompatActivity() {
             calendar.get(Calendar.MONTH),
             calendar.get(Calendar.DAY_OF_MONTH)
         )
+        datePicker.datePicker.minDate = calendar.timeInMillis
         datePicker.show()
     }
 
@@ -118,16 +142,36 @@ class ScheduleActivity : AppCompatActivity() {
         val path = "$selectedRoom/$selectedDate"
         dbRef.child(path).addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
+                val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+                val now = Calendar.getInstance()
+                val isToday = selectedDate == SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(now.time)
                 val slotStatusList = timeSlots.map { slot ->
+
+                    // Проверка на прошедшее время
+                    val slotStartTime = slot.substringBefore("-")
+                    val slotDateTime = SimpleDateFormat("yyyy-MM-dd HH:mm", Locale.getDefault())
+                        .parse("$selectedDate $slotStartTime")
+
+                    if (isToday && slotDateTime != null && slotDateTime.before(now.time)) {
+                        return@map "$slot - ⛔ ПРОШЛО"
+                    }
+
+                    // Проверка на бронь
                     val booking = snapshot.child(slot)
                     if (booking.exists()) {
-                        val bookedBy = booking.child("email").value.toString()
-                        "$slot - ЗАНЯТО ($bookedBy)"
+                        val bookedById = booking.child("bookedBy").value.toString()
+                        val bookedByEmail = booking.child("email").value.toString()
+
+                        if (bookedById == currentUserId) {
+                            "$slot - 🟦 МОЁ БРОНИРОВАНИЕ ($bookedByEmail)"
+                        } else {
+                            "$slot - ЗАНЯТО ($bookedByEmail)"
+                        }
                     } else {
                         "$slot - СВОБОДНО"
                     }
                 }
-                val adapter = ArrayAdapter(this@ScheduleActivity, android.R.layout.simple_list_item_1, slotStatusList)
+                val adapter = SlotAdapter(this@ScheduleActivity, slotStatusList)
                 listViewSlots.adapter = adapter
             }
 
