@@ -4,4 +4,11 @@
         <item>125</item>
         <item>hall</item>
     </string-array>
+    <string-array name="roles_array">
+        <item>Преподаватель</item>
+        <item>Ректор</item>
+        <item>Декан</item>
+        <item>Завуч</item>
+        <item>Гость</item>
+    </string-array>
 </resources>

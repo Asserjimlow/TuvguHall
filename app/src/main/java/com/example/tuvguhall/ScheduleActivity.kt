@@ -26,6 +26,7 @@ class ScheduleActivity : AppCompatActivity() {
     private lateinit var dbRef: DatabaseReference
     private var selectedDate: String = ""
     private var selectedRoom: String = "125"
+    private var isGuestMode = false
 
     private val timeSlots = listOf(
         "08:30-10:00", "10:10-11:40", "13:00-14:30",
@@ -49,8 +50,20 @@ class ScheduleActivity : AppCompatActivity() {
 
         buttonJournal.setOnClickListener {
             val intent = Intent(this, JournalActivity::class.java)
-            startActivity(intent)
+            startActivityForResult(intent, 1001)
         }
+        val rootLayout = findViewById<LinearLayout>(R.id.layoutRoot)
+
+        val settingsButton = Button(this).apply {
+            text = "Настройки"
+            setOnClickListener {
+                val intent = Intent(this@ScheduleActivity, SettingsActivity::class.java)
+                startActivityForResult(intent, 1001)
+            }
+        }
+
+        rootLayout.addView(settingsButton)
+
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 val token = task.result
@@ -75,15 +88,44 @@ class ScheduleActivity : AppCompatActivity() {
                         textUserInfo.text = "Не удалось загрузить данные пользователя"
                     }
                 })
+        } else {
+            // Гость
+            isGuestMode = true
+            textUserInfo.text = "Вы не авторизованы (только просмотр)"
+            buttonLogout.text = "Войти"
+        }
+
+        if (user != null) {
+            val uid = user.uid
+            val email = user.email ?: "Без email"
+
+            FirebaseDatabase.getInstance().getReference("Users").child(uid).child("role")
+                .addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        val role = snapshot.value.toString()
+                        textUserInfo.text = "Вы вошли как: $role ($email)"
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+                        textUserInfo.text = "Не удалось загрузить данные пользователя"
+                    }
+                })
         }
 
         // обработка выхода
         buttonLogout.setOnClickListener {
-            FirebaseAuth.getInstance().signOut()
-            Toast.makeText(this, "Выход выполнен", Toast.LENGTH_SHORT).show()
-            val intent = Intent(this, AuthActivity::class.java)
-            startActivity(intent)
-            finish()
+            if (isGuestMode) {
+                // Гость → переход к AuthActivity
+                val intent = Intent(this, AuthActivity::class.java)
+                startActivity(intent)
+                finish()
+            } else {
+                FirebaseAuth.getInstance().signOut()
+                Toast.makeText(this, "Выход выполнен", Toast.LENGTH_SHORT).show()
+                val intent = Intent(this, AuthActivity::class.java)
+                startActivity(intent)
+                finish()
+            }
         }
 
         // Обработка выбора аудитории
@@ -104,6 +146,10 @@ class ScheduleActivity : AppCompatActivity() {
         }
 
         listViewSlots.setOnItemClickListener { _, _, position, _ ->
+            if (isGuestMode) {
+                Toast.makeText(this, "Войдите, чтобы забронировать слот", Toast.LENGTH_SHORT).show()
+                return@setOnItemClickListener
+            }
             val slotText = listViewSlots.getItemAtPosition(position).toString()
 
             if (slotText.contains("ПРОШЛО")) {
@@ -220,5 +266,12 @@ class ScheduleActivity : AppCompatActivity() {
 
                 override fun onCancelled(error: DatabaseError) {}
             })
+    }
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (requestCode == 1001 && resultCode == RESULT_OK) {
+            recreate() // перезапускаем активити, обновляется роль и всё остальное
+        }
     }
 }

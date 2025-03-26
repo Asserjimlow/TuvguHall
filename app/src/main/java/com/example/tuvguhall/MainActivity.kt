@@ -2,30 +2,39 @@ package com.example.tuvguhall
 
 import android.content.Intent
 import android.os.Bundle
-import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import com.google.firebase.auth.FirebaseAuth
+import androidx.appcompat.app.AppCompatDelegate
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Применение темы (тёмная/светлая)
+        val isDarkMode = getSharedPreferences("AppPrefs", MODE_PRIVATE)
+            .getBoolean("dark_mode", false)
+        AppCompatDelegate.setDefaultNightMode(
+            if (isDarkMode)
+                AppCompatDelegate.MODE_NIGHT_YES
+            else
+                AppCompatDelegate.MODE_NIGHT_NO
+        )
+
         super.onCreate(savedInstanceState)
 
         auth = FirebaseAuth.getInstance()
 
-        // Если пользователь авторизован — перейти в главное расписание
+        // Если пользователь авторизован — переходим в расписание
         if (auth.currentUser != null) {
-            // TODO: показать расписание
-            setContentView(R.layout.activity_main)
+            val intent = Intent(this, ScheduleActivity::class.java)
+            startActivity(intent)
         } else {
-            // Перейти на экран авторизации
+            // Иначе — на экран входа
             val intent = Intent(this, AuthActivity::class.java)
             startActivity(intent)
-            finish() // Закрываем MainActivity, чтобы пользователь не мог вернуться назад
         }
+
+        finish() // Закрываем MainActivity, чтобы не возвращаться к нему
     }
 }

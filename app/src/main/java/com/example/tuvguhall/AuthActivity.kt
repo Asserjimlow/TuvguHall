@@ -19,6 +19,7 @@ class AuthActivity : AppCompatActivity() {
     private lateinit var signInButton: Button
     private lateinit var registerButton: Button
     private lateinit var forgotPasswordTextView: TextView
+    private lateinit var guestButton: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,6 +40,13 @@ class AuthActivity : AppCompatActivity() {
 
         registerButton.setOnClickListener {
             registerUser()
+        }
+        guestButton = findViewById(R.id.buttonGuest)
+
+        guestButton.setOnClickListener {
+            val intent = Intent(this, ScheduleActivity::class.java)
+            startActivity(intent)
+            finish()
         }
 
         forgotPasswordTextView.setOnClickListener {

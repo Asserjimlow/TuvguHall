@@ -54,6 +54,12 @@
             android:layout_height="wrap_content"
             android:text="Зарегистрироваться"
             android:layout_marginTop="8dp"/>
+        <Button
+            android:id="@+id/buttonGuest"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Продолжить без входа"
+            android:layout_marginTop="16dp" />
 
         <TextView
             android:id="@+id/textForgotPassword"

@@ -1,0 +1,47 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/layoutRoot"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/textUserEmail"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Email: Загрузка..."
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/textUserRole"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Роль: Загрузка..."
+        android:textSize="18sp"
+        android:layout_marginTop="8dp" />
+    <Spinner
+        android:id="@+id/roleSpinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp" />
+
+    <Button
+        android:id="@+id/saveRoleButton"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Сохранить роль"
+        android:layout_marginTop="8dp" />
+    <Switch
+        android:id="@+id/darkModeSwitch"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="🌙 Тёмная тема"
+        android:layout_marginTop="24dp" />
+    <Button
+        android:id="@+id/buttonLogoutSettings"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Выйти из аккаунта"
+        android:layout_marginTop="24dp" />
+
+</LinearLayout>

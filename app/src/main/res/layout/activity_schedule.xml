@@ -9,6 +9,7 @@
 
     <!-- res/layout/activity_schedule.xml -->
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/layoutRoot"
         android:orientation="vertical"
         android:padding="16dp"
         android:layout_width="match_parent"
