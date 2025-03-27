@@ -14,6 +14,13 @@ import java.text.SimpleDateFormat
 import java.util.*
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import android.content.Context
+import com.google.auth.oauth2.GoogleCredentials
+import okhttp3.*
+import org.json.JSONObject
+import java.io.InputStream
+import kotlin.concurrent.thread
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 
 class ScheduleActivity : AppCompatActivity() {
 
@@ -47,6 +54,10 @@ class ScheduleActivity : AppCompatActivity() {
         dbRef = FirebaseDatabase.getInstance().getReference("Schedule")
 
         val buttonJournal = findViewById<Button>(R.id.buttonJournal)
+        FirebaseMessaging.getInstance().subscribeToTopic("schedule_updates")
+            .addOnCompleteListener {
+                Log.d("FCM", "Подписка на schedule_updates успешна")
+            }
 
         buttonJournal.setOnClickListener {
             val intent = Intent(this, JournalActivity::class.java)
@@ -257,12 +268,18 @@ class ScheduleActivity : AppCompatActivity() {
                                 bookingRef.setValue(booking)
                                 Toast.makeText(this@ScheduleActivity, "Бронь успешна", Toast.LENGTH_SHORT).show()
                                 loadSchedule()
+                                sendPushViaHttpV1(
+                                    this@ScheduleActivity,
+                                    "Новое бронирование",
+                                    "$email забронировал $selectedRoom на $slot ($selectedDate)"
+                                )
                             }
                         }
 
                         override fun onCancelled(error: DatabaseError) {}
                     })
                 }
+
 
                 override fun onCancelled(error: DatabaseError) {}
             })
@@ -272,6 +289,46 @@ class ScheduleActivity : AppCompatActivity() {
 
         if (requestCode == 1001 && resultCode == RESULT_OK) {
             recreate() // перезапускаем активити, обновляется роль и всё остальное
+        }
+    }
+    fun sendPushViaHttpV1(context: Context, title: String, message: String) {
+        thread {
+            try {
+                val stream: InputStream = context.assets.open("service-account.json")
+                val credentials = GoogleCredentials.fromStream(stream)
+                    .createScoped(listOf("https://www.googleapis.com/auth/firebase.messaging"))
+                credentials.refreshIfExpired()
+                val token = credentials.accessToken.tokenValue
+
+                val json = JSONObject()
+                val messageObj = JSONObject()
+                val notification = JSONObject()
+                notification.put("title", title)
+                notification.put("body", message)
+                messageObj.put("topic", "schedule_updates")
+                messageObj.put("notification", notification)
+                json.put("message", messageObj)
+
+                val client = OkHttpClient()
+                val body = RequestBody.create(
+                    "application/json; charset=utf-8".toMediaTypeOrNull(),
+                    json.toString()
+                )
+
+                val projectId = "auditorium-schedule" // замени на свой projectId
+
+                val request = Request.Builder()
+                    .url("https://fcm.googleapis.com/v1/projects/$projectId/messages:send")
+                    .addHeader("Authorization", "Bearer $token")
+                    .post(body)
+                    .build()
+
+                val response = client.newCall(request).execute()
+                Log.d("FCMv1", "Ответ: ${response.code} — ${response.body?.string()}")
+
+            } catch (e: Exception) {
+                Log.e("FCMv1", "Ошибка: ${e.message}")
+            }
         }
     }
 }

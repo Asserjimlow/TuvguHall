@@ -9,6 +9,11 @@ import androidx.core.view.WindowInsetsCompat
 import android.widget.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.FirebaseDatabase
+import android.os.Build
+import android.widget.Toast
+import android.content.pm.PackageManager
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 
 class AuthActivity : AppCompatActivity() {
 
@@ -33,6 +38,18 @@ class AuthActivity : AppCompatActivity() {
         registerButton = findViewById(R.id.buttonRegister)
         forgotPasswordTextView = findViewById(R.id.textForgotPassword)
         roleEditText = findViewById(R.id.editTextRole)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS)
+                != PackageManager.PERMISSION_GRANTED) {
+
+                ActivityCompat.requestPermissions(
+                    this,
+                    arrayOf(android.Manifest.permission.POST_NOTIFICATIONS),
+                    1001
+                )
+            }
+        }
 
         signInButton.setOnClickListener {
             signInUser()
@@ -138,6 +155,21 @@ class AuthActivity : AppCompatActivity() {
                 }
         } else {
             Toast.makeText(this, "Введите email", Toast.LENGTH_SHORT).show()
+        }
+    }
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+
+        if (requestCode == 1001) {
+            if ((grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                Toast.makeText(this, "Уведомления разрешены", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(this, "Уведомления отключены", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 }

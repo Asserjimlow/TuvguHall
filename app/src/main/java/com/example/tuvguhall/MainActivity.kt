@@ -21,6 +21,7 @@ class MainActivity : AppCompatActivity() {
                 AppCompatDelegate.MODE_NIGHT_NO
         )
 
+
         super.onCreate(savedInstanceState)
 
         auth = FirebaseAuth.getInstance()

@@ -17,6 +17,7 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
+    sourceSets.getByName("main").assets.srcDirs("src/main/assets")
 
     buildTypes {
         release {
@@ -33,6 +34,17 @@ android {
     }
     kotlinOptions {
         jvmTarget = "17"
+    }
+    packaging {
+        resources {
+            excludes += setOf(
+                "META-INF/DEPENDENCIES",
+                "META-INF/LICENSE",
+                "META-INF/LICENSE.txt",
+                "META-INF/NOTICE",
+                "META-INF/NOTICE.txt"
+            )
+        }
     }
 }
 
@@ -53,4 +65,6 @@ dependencies {
     implementation("com.google.firebase:firebase-auth-ktx")
     implementation("com.google.firebase:firebase-database-ktx")
     implementation("com.google.firebase:firebase-messaging-ktx")
+    implementation("com.google.auth:google-auth-library-oauth2-http:1.17.0")
+    implementation("com.squareup.okhttp3:okhttp:4.9.3")
 }
