@@ -68,8 +68,8 @@ class ScheduleActivity : AppCompatActivity() {
         FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
             if (task.isSuccessful) {
                 val token = task.result
-                Log.d("FCM", "FCM Token: $token")
-                Toast.makeText(this, "Токен получен в логах", Toast.LENGTH_SHORT).show()
+                //Log.d("FCM", "FCM Token: $token")
+                //Toast.makeText(this, "Токен получен в логах", Toast.LENGTH_SHORT).show()
             }
         }
         // загрузка данных пользователя

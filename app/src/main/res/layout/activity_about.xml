@@ -19,7 +19,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Название: TUVGU Hall Schedule"
+            android:text="Название: Аудитории"
             android:textSize="16sp" />
 
         <TextView
@@ -39,7 +39,7 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Разработчик: Темир (Asserjimlow)"
+            android:text="Разработчик: Монгуш Сайын"
             android:layout_marginTop="8dp"
             android:textSize="16sp" />
 
@@ -47,7 +47,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:autoLink="email"
-            android:text="Связаться: asserjimlow@example.com"
+            android:text="Связаться: https://vk.com/mongush__s"
             android:layout_marginTop="8dp"
             android:textSize="16sp" />
 

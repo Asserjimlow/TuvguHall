@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">TuvguHall</string>
+    <string name="app_name">Аудитории</string>
     <string-array name="room_options">
         <item>Аудитория 125</item>
         <item>Актовый зал</item>
