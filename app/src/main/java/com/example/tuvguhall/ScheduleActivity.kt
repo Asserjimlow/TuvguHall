@@ -14,13 +14,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import android.content.Context
-import com.google.auth.oauth2.GoogleCredentials
-import okhttp3.*
-import org.json.JSONObject
-import java.io.InputStream
-import kotlin.concurrent.thread
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import androidx.appcompat.app.AlertDialog
 
 class ScheduleActivity : AppCompatActivity() {
 
@@ -54,10 +48,6 @@ class ScheduleActivity : AppCompatActivity() {
         dbRef = FirebaseDatabase.getInstance().getReference("Schedule")
 
         val buttonJournal = findViewById<Button>(R.id.buttonJournal)
-        FirebaseMessaging.getInstance().subscribeToTopic("schedule_updates")
-            .addOnCompleteListener {
-                Log.d("FCM", "Подписка на schedule_updates успешна")
-            }
 
         buttonJournal.setOnClickListener {
             val intent = Intent(this, JournalActivity::class.java)
@@ -142,7 +132,11 @@ class ScheduleActivity : AppCompatActivity() {
         // Обработка выбора аудитории
         spinnerRoom.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: android.view.View?, position: Int, id: Long) {
-                selectedRoom = parent?.getItemAtPosition(position).toString()
+                selectedRoom = when (parent?.getItemAtPosition(position).toString()) {
+                    "Аудитория 125" -> "125"
+                    "Актовый зал" -> "hall"
+                    else -> "125" // значение по умолчанию
+                }
                 if (selectedDate.isNotEmpty()) {
                     loadSchedule()
                 }
@@ -178,7 +172,21 @@ class ScheduleActivity : AppCompatActivity() {
     private fun showDatePicker() {
         val calendar = Calendar.getInstance()
 
-        val datePicker = DatePickerDialog(this,
+        // Если уже была выбрана дата — установить её как стартовую
+        if (selectedDate.isNotEmpty()) {
+            try {
+                val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                val date = sdf.parse(selectedDate)
+                date?.let {
+                    calendar.time = it
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        val datePicker = DatePickerDialog(
+            this,
             { _, year, month, day ->
                 val picked = Calendar.getInstance()
                 picked.set(year, month, day)
@@ -191,7 +199,8 @@ class ScheduleActivity : AppCompatActivity() {
             calendar.get(Calendar.MONTH),
             calendar.get(Calendar.DAY_OF_MONTH)
         )
-        datePicker.datePicker.minDate = calendar.timeInMillis
+
+        datePicker.datePicker.minDate = Calendar.getInstance().timeInMillis
         datePicker.show()
     }
 
@@ -230,6 +239,37 @@ class ScheduleActivity : AppCompatActivity() {
                 }
                 val adapter = SlotAdapter(this@ScheduleActivity, slotStatusList)
                 listViewSlots.adapter = adapter
+                listViewSlots.setOnItemLongClickListener { _, _, position, _ ->
+                    val slotStatus = (listViewSlots.adapter.getItem(position) as String)
+
+                    if (slotStatus.contains("МОЁ БРОНИРОВАНИЕ")) {
+                        AlertDialog.Builder(this@ScheduleActivity)
+                            .setTitle("Отменить бронь?")
+                            .setMessage("Вы уверены, что хотите отменить бронирование на ${timeSlots[position]}?")
+                            .setPositiveButton("Да") { _, _ ->
+                                val user = FirebaseAuth.getInstance().currentUser
+                                if (user != null) {
+                                    val bookingRef = FirebaseDatabase.getInstance().reference
+                                        .child("Schedule")
+                                        .child(selectedRoom)
+                                        .child(selectedDate)
+                                        .child(timeSlots[position])
+
+                                    bookingRef.removeValue().addOnSuccessListener {
+                                        Toast.makeText(this@ScheduleActivity, "Бронь отменена", Toast.LENGTH_SHORT).show()
+                                        loadSchedule()
+                                    }.addOnFailureListener {
+                                        Toast.makeText(this@ScheduleActivity, "Ошибка при отмене", Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            }
+                            .setNegativeButton("Отмена", null)
+                            .show()
+                        true
+                    } else {
+                        false
+                    }
+                }
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -268,18 +308,12 @@ class ScheduleActivity : AppCompatActivity() {
                                 bookingRef.setValue(booking)
                                 Toast.makeText(this@ScheduleActivity, "Бронь успешна", Toast.LENGTH_SHORT).show()
                                 loadSchedule()
-                                sendPushViaHttpV1(
-                                    this@ScheduleActivity,
-                                    "Новое бронирование",
-                                    "$email забронировал $selectedRoom на $slot ($selectedDate)"
-                                )
                             }
                         }
 
                         override fun onCancelled(error: DatabaseError) {}
                     })
                 }
-
 
                 override fun onCancelled(error: DatabaseError) {}
             })
@@ -289,46 +323,6 @@ class ScheduleActivity : AppCompatActivity() {
 
         if (requestCode == 1001 && resultCode == RESULT_OK) {
             recreate() // перезапускаем активити, обновляется роль и всё остальное
-        }
-    }
-    fun sendPushViaHttpV1(context: Context, title: String, message: String) {
-        thread {
-            try {
-                val stream: InputStream = context.assets.open("service-account.json")
-                val credentials = GoogleCredentials.fromStream(stream)
-                    .createScoped(listOf("https://www.googleapis.com/auth/firebase.messaging"))
-                credentials.refreshIfExpired()
-                val token = credentials.accessToken.tokenValue
-
-                val json = JSONObject()
-                val messageObj = JSONObject()
-                val notification = JSONObject()
-                notification.put("title", title)
-                notification.put("body", message)
-                messageObj.put("topic", "schedule_updates")
-                messageObj.put("notification", notification)
-                json.put("message", messageObj)
-
-                val client = OkHttpClient()
-                val body = RequestBody.create(
-                    "application/json; charset=utf-8".toMediaTypeOrNull(),
-                    json.toString()
-                )
-
-                val projectId = "auditorium-schedule" // замени на свой projectId
-
-                val request = Request.Builder()
-                    .url("https://fcm.googleapis.com/v1/projects/$projectId/messages:send")
-                    .addHeader("Authorization", "Bearer $token")
-                    .post(body)
-                    .build()
-
-                val response = client.newCall(request).execute()
-                Log.d("FCMv1", "Ответ: ${response.code} — ${response.body?.string()}")
-
-            } catch (e: Exception) {
-                Log.e("FCMv1", "Ошибка: ${e.message}")
-            }
         }
     }
 }

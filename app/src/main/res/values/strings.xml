@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name">TuvguHall</string>
     <string-array name="room_options">
-        <item>125</item>
-        <item>hall</item>
+        <item>Аудитория 125</item>
+        <item>Актовый зал</item>
     </string-array>
     <string-array name="roles_array">
         <item>Преподаватель</item>
