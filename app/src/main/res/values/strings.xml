@@ -9,6 +9,6 @@
         <item>Ректор</item>
         <item>Декан</item>
         <item>Завуч</item>
-        <item>Гость</item>
     </string-array>
+    <string name="background_image_desc">Фоновое изображение университета</string>
 </resources>

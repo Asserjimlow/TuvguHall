@@ -17,7 +17,6 @@ import androidx.core.content.ContextCompat
 
 class AuthActivity : AppCompatActivity() {
 
-    private lateinit var roleEditText: EditText
     private lateinit var auth: FirebaseAuth
     private lateinit var emailEditText: EditText
     private lateinit var passwordEditText: EditText
@@ -25,6 +24,7 @@ class AuthActivity : AppCompatActivity() {
     private lateinit var registerButton: Button
     private lateinit var forgotPasswordTextView: TextView
     private lateinit var guestButton: Button
+    private lateinit var roleSpinner: Spinner
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,7 +37,12 @@ class AuthActivity : AppCompatActivity() {
         signInButton = findViewById(R.id.buttonSignIn)
         registerButton = findViewById(R.id.buttonRegister)
         forgotPasswordTextView = findViewById(R.id.textForgotPassword)
-        roleEditText = findViewById(R.id.editTextRole)
+        roleSpinner = findViewById(R.id.spinnerRole)
+
+        val roles = listOf("Выберите роль", "Ректор","Декан","Завуч", "Преподаватель")
+        val adapter = ArrayAdapter(this, android.R.layout.simple_spinner_item, roles)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+        roleSpinner.adapter = adapter
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.POST_NOTIFICATIONS)
@@ -96,9 +101,9 @@ class AuthActivity : AppCompatActivity() {
     private fun registerUser() {
         val email = emailEditText.text.toString()
         val password = passwordEditText.text.toString()
-        val role = roleEditText.text.toString()
+        val role = roleSpinner.selectedItem.toString()
 
-        if (email.isNotEmpty() && password.isNotEmpty() && role.isNotEmpty()) {
+        if (email.isNotEmpty() && password.isNotEmpty() && role != "Выберите роль") {
             auth.createUserWithEmailAndPassword(email, password)
                 .addOnCompleteListener(this) { task ->
                     if (task.isSuccessful) {
@@ -107,37 +112,21 @@ class AuthActivity : AppCompatActivity() {
                             "email" to email,
                             "role" to role
                         )
-
-                        // Сохраняем в Firebase Realtime Database
                         val dbRef = FirebaseDatabase.getInstance().getReference("Users")
                         userId?.let {
                             dbRef.child(it).setValue(userMap)
                         }
 
                         Toast.makeText(this, "Регистрация успешна!", Toast.LENGTH_SHORT).show()
-                        // Можно отправить на экран расписания
-                        if (task.isSuccessful) {
-                            val userId = auth.currentUser?.uid
-                            val userMap = mapOf(
-                                "email" to email,
-                                "role" to role
-                            )
-                            val dbRef = FirebaseDatabase.getInstance().getReference("Users")
-                            userId?.let {
-                                dbRef.child(it).setValue(userMap)
-                            }
-
-                            Toast.makeText(this, "Регистрация успешна!", Toast.LENGTH_SHORT).show()
-                            val intent = Intent(this@AuthActivity, ScheduleActivity::class.java)
-                            startActivity(intent)
-                            finish()
-                        }
+                        val intent = Intent(this@AuthActivity, ScheduleActivity::class.java)
+                        startActivity(intent)
+                        finish()
                     } else {
                         Toast.makeText(this, "Ошибка регистрации: ${task.exception?.message}", Toast.LENGTH_SHORT).show()
                     }
                 }
         } else {
-            Toast.makeText(this, "Заполните все поля", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "Заполните все поля и выберите роль", Toast.LENGTH_SHORT).show()
         }
     }
 

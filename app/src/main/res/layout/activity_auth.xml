@@ -7,15 +7,30 @@
     android:layout_height="match_parent"
     tools:context=".AuthActivity">
 
-    <!-- activity_auth.xml -->
-    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
+    <!-- Фоновое изображение -->
+    <ImageView
+        android:id="@+id/backgroundImage"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical"
-        android:gravity="center"
+        android:src="@drawable/background_auth"
+        android:scaleType="centerCrop"
+        android:contentDescription="@string/background_image_desc"
+        android:alpha="0.5" />
+
+    <!-- Основное содержимое -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:padding="24dp"
-        tools:context=".AuthActivity">
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:background="#AAFFFFFF"
+            android:padding="24dp">
 
         <EditText
             android:id="@+id/editTextEmail"
@@ -23,7 +38,7 @@
             android:layout_height="wrap_content"
             android:hint="Email"
             android:inputType="textEmailAddress"
-            android:autofillHints="emailAddress"/>
+            android:autofillHints="emailAddress" />
 
         <EditText
             android:id="@+id/editTextPassword"
@@ -31,29 +46,29 @@
             android:layout_height="wrap_content"
             android:hint="Пароль"
             android:inputType="textPassword"
-            android:layout_marginTop="8dp"/>
+            android:layout_marginTop="8dp" />
 
-        <EditText
-            android:id="@+id/editTextRole"
+        <Spinner
+            android:id="@+id/spinnerRole"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Ваша роль (например, Преподаватель)"
-            android:inputType="textPersonName"
-            android:layout_marginTop="8dp"/>
+            android:layout_marginTop="8dp"
+            android:spinnerMode="dropdown" />
 
         <Button
             android:id="@+id/buttonSignIn"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Войти"
-            android:layout_marginTop="16dp"/>
+            android:layout_marginTop="16dp" />
 
         <Button
             android:id="@+id/buttonRegister"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Зарегистрироваться"
-            android:layout_marginTop="8dp"/>
+            android:layout_marginTop="8dp" />
+
         <Button
             android:id="@+id/buttonGuest"
             android:layout_width="match_parent"
@@ -66,12 +81,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Забыли пароль?"
-            android:textColor="#3F51B5"
+            android:textColor="@color/purple_700"
             android:textStyle="bold"
             android:padding="8dp"
-            android:layout_marginTop="8dp"/>
+            android:layout_marginTop="8dp" />
 
     </LinearLayout>
+</ScrollView>
 
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
